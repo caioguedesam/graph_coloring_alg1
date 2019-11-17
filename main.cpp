@@ -12,8 +12,8 @@ int main() {
 
 	board->CreateSudoku();
 	board->AddConections();
-	board->PrintSudoku();
 
+	board->Solve();
 	delete board;
 
 	return 0;
