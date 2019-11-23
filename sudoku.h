@@ -1,6 +1,8 @@
 #ifndef ALG1_TP3_SUDOKU
 #define ALG1_TP3_SUDOKU
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <cmath>
 #include <vector>
 #include <utility>
@@ -27,7 +29,7 @@ public:
 class Sudoku {
 public:
 	// A heurísitca achou uma solução?
-	bool found_solution;
+	//bool found_solution;
 	// Tamanho do quadro
 	int board_size;
 	// Tamanho do quadrante
@@ -46,10 +48,11 @@ public:
 	void CreateSudoku();
 	void AddConections();
 
-	void TryToColor(Cell *cell);
-	void Solve();
+	void TryToColor(Cell *cell, bool force_color);
+	void Solve(int guess_tolerance);
 
 	void PrintSudoku();
+	bool CheckForValidSolution();
 };
 
 #endif

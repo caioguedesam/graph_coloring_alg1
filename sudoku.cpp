@@ -88,7 +88,7 @@ void Sudoku::AddConections() {
 // PrintSudoku: imprime o resultado do jogo do sudoku.
 void Sudoku::PrintSudoku() {
 
-	if(found_solution)
+	if(CheckForValidSolution())
 		std::cout << "solução" << std::endl;
 	else
 		std::cout << "sem solução" << std::endl;
@@ -102,7 +102,7 @@ void Sudoku::PrintSudoku() {
 
 // TryToColor: Tenta marcar uma dada célula. Marca apenas
 // caso a célula tenha uma possibilidade de marcação.
-void Sudoku::TryToColor(Cell *cell) {
+void Sudoku::TryToColor(Cell *cell, bool force_color) {
 
 	// Todas as cores possíveis para uma dada célula
 	std::vector<int> possible_colors;
@@ -136,43 +136,88 @@ void Sudoku::TryToColor(Cell *cell) {
 			marked_cells++;
 			has_colored = true;
 		}
+		// Caso tente chutar, colore só se tiver 2 possibilidades
+		else if(possible_colors.size() == 2 && force_color) {
+			cell->value = possible_colors[0];
+			marked_cells++;
+			has_colored = true;
+		}
 	}
 }
 
 // Solve: resolve o sudoku
-void Sudoku::Solve() {
+void Sudoku::Solve(int guess_tolerance) {
+
+	int guesses = 0;
 
 	// Continua iterando até que todas as células estejam marcadas
-	while(marked_cells < (board_size * board_size)) {
+	while(marked_cells < (board_size * board_size) && guesses <= guess_tolerance) {
 		// No início da iteração sobre o jogo, nenhuma célula
 		// foi marcada na iteração
+
 		has_colored = false;
 		for(int i = 0; i < board_size; i++) {
 			for(int j = 0; j < board_size; j++) {
 				// Tenta colorir a dada célula
-				TryToColor(&cells[i][j]);
+				TryToColor(&cells[i][j], false);
 			}
 		}
 
-		// Caso nenhuma célula seja marcada na iteração, não foi
-		// encontrada uma solução para o Sudoku. Para.
-		if(!has_colored)
+		// Caso nenhuma célula seja colorida com certeza,
+		// hora de fazer um chute.
+		if(!has_colored) {
+			for(int i = 0; i < board_size; i++) {
+				for(int j = 0; j < board_size; j++) {
+					if(cells[i][j].value == 0) {
+						TryToColor(&cells[i][j], true);
+						if(has_colored) {
+							guesses++;
+							break;
+						}
+					}
+				}
+				if(has_colored)
+					break;
+			}
+		}
+
+		// Caso não hajam opções ou a tolerância de chutes seja ultrapassada,
+		// pare.
+		if(!has_colored || guesses > guess_tolerance)
 			break;
 	}
 
 	// Padrão: achou solução
-	found_solution = true;
-	// Caso seja encontrado um 0 na "solução", não
+	//found_solution = CheckForValidSolution();
+	/*// Caso seja encontrado um 0 na "solução", não
 	// é solução válida.
 	for(int i = 0; i < board_size; i++) {
 		for(int j = 0; j < board_size; j++) {
 			if(cells[i][j].value == 0)
 				found_solution = false;
 		}
-	}
+	}*/
 
 	// Imprime resultados
 	PrintSudoku();
 }
 
+bool Sudoku::CheckForValidSolution() {
+	for(int i = 0; i < board_size; i++) {
+		for(int j = 0; j < board_size; j++) {
+			Cell *current_cell = &cells[i][j];
+			if(current_cell->value == 0)
+				return false;
+			else {
+				std::vector<Cell*> adj = current_cell->adj_cells;
+				for(int k = 0; k < adj.size(); k++) {
+					if(adj[k]->value == current_cell->value)
+						return false;
+				}
+			}
+		}
+	}
+
+	return true;
+}
 

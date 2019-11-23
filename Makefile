@@ -6,7 +6,7 @@ main.o: main.cpp
 	g++ -c main.cpp
 
 sudoku.o: sudoku.cpp sudoku.h
-	g++ -c sudoku.cpp
+	g++ -c sudoku.cpp -O3
 
 clean:
 	rm *.o
